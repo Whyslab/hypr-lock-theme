@@ -1,0 +1,290 @@
+# ~/.config/hypr/hyprlock.conf
+# Тема: Monochrome Vivid
+# Сгенерировано install.sh из hyprlock.conf.template — плейсхолдеры __В_ВЕРХНЕМ_РЕГИСТРЕ__
+# заменены на реальные абсолютные пути на этой машине.
+#
+# Палитра:      ~/.config/hypr/colors.conf
+# Смена обоев:  ~/.config/hypr/scripts/switch-wallpaper.sh
+# Документация: README.md проекта hyprlock-theme
+
+source = ~/.config/hypr/colors.conf
+
+general {
+    hide_cursor = false
+    disable_loading_bar = true
+}
+
+# Плавные fade-переходы + анимации поля пароля.
+# Кастомная бизье-кривая premiumEase даёт мягкое "дорогое" замедление в конце,
+# вместо линейного/резкого перехода.
+animations {
+    enabled = true
+    bezier = premiumEase, 0.16, 1.0, 0.3, 1.0
+    animation = fadeIn, 1, 6, premiumEase
+    animation = fadeOut, 1, 5, premiumEase
+    animation = inputFieldColors, 1, 4, premiumEase
+    animation = inputFieldFade, 1, 4, premiumEase
+    animation = inputFieldWidth, 1, 4, premiumEase
+    animation = inputFieldDots, 1, 3, premiumEase
+}
+
+# ==================== ФОН ====================
+background {
+    monitor =
+    path = __WALLPAPER_CURRENT__
+    color = $c_black
+
+    blur_passes = 3
+    blur_size = 8
+    noise = 0.02
+    contrast = 1.05
+    brightness = 0.92
+    vibrancy = 0.0
+    vibrancy_darkness = 0.0
+}
+
+# ============ "СТЕКЛЯННАЯ" КАРТОЧКА (identity + auth) ============
+# Полупрозрачная панель поверх общего блюра фона — это и даёт эффект
+# glassmorphism без необходимости в локальном блюре формы (hyprlock его не умеет).
+shape {
+    monitor =
+    size = 460, 330
+    rounding = 28
+    color = $c_panel
+    border_size = 1
+    border_color = $c_panel_border
+    rotate = 0
+    xray = false
+    halign = center
+    valign = center
+    position = 0, 50
+    zindex = 4
+
+    shadow_passes = 3
+    shadow_size = 30
+    shadow_color = rgba(0, 0, 0, 0.55)
+    shadow_boost = 1.0
+}
+
+# ==================== ЧАСЫ ====================
+# $TIME — встроенная переменная hyprlock (формат 24ч, часовой пояс из TZ/системы)
+label {
+    monitor =
+    text = $TIME
+    color = $c_white
+    font_size = 104
+    font_family = $font
+    halign = center
+    valign = center
+    position = 0, -280
+    zindex = 6
+
+    shadow_passes = 2
+    shadow_size = 12
+    shadow_color = rgba(0, 0, 0, 0.6)
+}
+
+# ==================== ДАТА ====================
+# date уважает системную локаль (LANG/LC_TIME) — если она ru_RU.UTF-8,
+# день недели и месяц напечатаются по-русски автоматически, ничего доп. делать не нужно.
+label {
+    monitor =
+    text = cmd[update:60000] date '+%A, %-d %B'
+    color = $c_grey_light
+    font_size = 20
+    font_family = $font
+    halign = center
+    valign = center
+    position = 0, -175
+    zindex = 6
+
+    shadow_passes = 1
+    shadow_size = 6
+    shadow_color = rgba(0, 0, 0, 0.5)
+}
+
+# ==================== АВАТАР ====================
+image {
+    monitor =
+    path = __AVATAR_PATH__
+    size = 92
+    rounding = -1
+    border_size = 3
+    border_color = rgba(255, 255, 255, 0.25)
+    halign = center
+    valign = center
+    position = 0, -75
+    zindex = 8
+
+    shadow_passes = 2
+    shadow_size = 10
+    shadow_color = rgba(0, 0, 0, 0.5)
+}
+
+# ==================== USER@HOSTNAME ====================
+label {
+    monitor =
+    text = <b>$USER</b>@__HOSTNAME__
+    color = $c_white
+    font_size = 16
+    font_family = $font
+    halign = center
+    valign = center
+    position = 0, -5
+    zindex = 8
+}
+
+# ==================== РАСКЛАДКА КЛАВИАТУРЫ ====================
+# Порядок [EN,RU] должен совпадать с порядком kb_layout в hyprland.conf.
+# Проверить: grep kb_layout ~/.config/hypr/hyprland.conf
+# Если раскладка не совпадает или не отображается — либо поменяй порядок ниже,
+# либо это известный баг $LAYOUT в старых версиях hyprlock (обнови pacman -Syu hyprlock).
+label {
+    monitor =
+    text = $LAYOUT[EN,RU]
+    color = $c_grey_mid
+    font_size = 13
+    font_family = $font
+    halign = center
+    valign = center
+    position = 0, 20
+    zindex = 8
+}
+
+# ==================== ДЕКОРАТИВНАЯ ИКОНКА ЗАМКА ====================
+image {
+    monitor =
+    path = __ICON_LOCK__
+    size = 22
+    rounding = 0
+    halign = center
+    valign = center
+    position = 0, 62
+    zindex = 7
+}
+
+# ==================== ПОЛЕ ПАРОЛЯ ====================
+# capslock_color / numlock_color / bothlock_color — встроенная индикация
+# hyprlock, отдельные лейблы для этого не нужны.
+input-field {
+    monitor =
+    size = 300, 52
+    rounding = 26
+    outline_thickness = 2
+    dots_size = 0.28
+    dots_spacing = 0.25
+    dots_center = true
+    dots_rounding = -1
+
+    inner_color = rgba(255, 255, 255, 0.06)
+    outer_color = $c_idle_ring
+    font_color = $c_white
+    font_family = $font
+
+    capslock_color = $c_caps_ring
+    numlock_color = $c_num_ring
+    bothlock_color = $c_both_ring
+    invert_numlock = false
+
+    check_color = $c_check_ring
+    fail_color = $c_fail_ring
+    fail_text = <i>неверный пароль ($ATTEMPTS)</i>
+    fail_timeout = 1500
+    fail_transition = 250
+
+    placeholder_text = <i>Введите пароль…</i>
+    fade_on_empty = true
+    fade_timeout = 1200
+    hide_input = false
+
+    halign = center
+    valign = center
+    position = 0, 100
+    zindex = 8
+
+    shadow_passes = 2
+    shadow_size = 14
+    shadow_color = rgba(0, 0, 0, 0.5)
+}
+
+# ==================== МИНИ-МОНИТОРИНГ (нижняя полоса, слева) ====================
+label {
+    monitor =
+    text = cmd[update:2000] __SCRIPT_CPU__
+    color = $c_grey_mid
+    font_size = 14
+    font_family = $font
+    halign = left
+    valign = bottom
+    position = 40, -100
+    zindex = 6
+}
+
+label {
+    monitor =
+    text = cmd[update:3000] __SCRIPT_RAM__
+    color = $c_grey_mid
+    font_size = 14
+    font_family = $font
+    halign = left
+    valign = bottom
+    position = 40, -75
+    zindex = 6
+}
+
+label {
+    monitor =
+    text = cmd[update:5000] __SCRIPT_TEMP__
+    color = $c_grey_mid
+    font_size = 14
+    font_family = $font
+    halign = left
+    valign = bottom
+    position = 40, -50
+    zindex = 6
+}
+
+# ==================== МИНИ-МОНИТОРИНГ (нижняя полоса, справа) ====================
+label {
+    monitor =
+    text = cmd[update:15000] __SCRIPT_BATTERY__
+    color = $c_grey_mid
+    font_size = 14
+    font_family = $font
+    halign = right
+    valign = bottom
+    position = -40, -75
+    zindex = 6
+}
+
+label {
+    monitor =
+    text = cmd[update:8000] __SCRIPT_WIFI__
+    color = $c_grey_mid
+    font_size = 14
+    font_family = $font
+    halign = right
+    valign = bottom
+    position = -40, -50
+    zindex = 6
+}
+
+# ==================== КНОПКА ВЫКЛЮЧЕНИЯ ====================
+# onclick — относительно новая фича hyprlock. Если версия старая и она
+# ругается в логах на "onclick" при запуске — просто удали строку onclick,
+# иконка останется декоративной, всё остальное не пострадает.
+image {
+    monitor =
+    path = __ICON_POWER__
+    size = 42
+    rounding = -1
+    halign = right
+    valign = bottom
+    position = -40, -140
+    zindex = 6
+    onclick = systemctl poweroff
+
+    shadow_passes = 1
+    shadow_size = 8
+    shadow_color = rgba(0, 0, 0, 0.5)
+}

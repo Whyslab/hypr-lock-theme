@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="70%">
+      <stop offset="0%" stop-color="#2a2a2e"/>
+      <stop offset="100%" stop-color="#111113"/>
+    </radialGradient>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#bg)"/>
+  <circle cx="100" cy="100" r="97" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="2"/>
+  <!-- голова -->
+  <circle cx="100" cy="80" r="34" fill="none" stroke="#e8e8ea" stroke-width="6" stroke-linecap="round"/>
+  <!-- плечи/торс -->
+  <path d="M 44 168 C 44 122 156 122 156 168" fill="none" stroke="#e8e8ea" stroke-width="6" stroke-linecap="round"/>
+</svg>
