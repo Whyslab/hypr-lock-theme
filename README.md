@@ -1,290 +1,281 @@
-# Monochrome Vivid — тема для Hyprlock
+# Monochrome Vivid — a Hyprlock theme
 
-Минималистичный экран блокировки для Hyprland: глубокий чёрный, оттенки
-серого, белые акценты. Никаких цветных элементов — состояния (обычное поле
-ввода, Caps Lock, ошибка пароля) показаны через яркость/прозрачность белого,
-а не через цвет. "Стеклянная" карточка с аватаром и полем пароля, процедурно
-сгенерированные 4K-обои, мини-мониторинг системы прямо на экране блокировки.
+*[Русская версия](README.ru.md)*
 
-## Что внутри
+![Arch Linux](https://img.shields.io/badge/Arch_Linux-1793d1?style=flat-square&logo=archlinux&logoColor=white)
+![Hyprland](https://img.shields.io/badge/Hyprland-58e1ff?style=flat-square&logo=hyprland&logoColor=black)
+![Shell](https://img.shields.io/badge/Shell-4eaa25?style=flat-square&logo=gnubash&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
-- Большие часы (`$TIME`) и дата на системной локали
-- Аватар (кружок), `$USER`@hostname
-- Индикатор раскладки клавиатуры
-- Поле пароля с индикацией Caps Lock / Num Lock / ошибки — через яркость, не цвет
-- Мини-мониторинг: CPU, RAM, температура (если есть датчики), заряд батареи (если ноутбук), Wi-Fi
-- Кликабельная кнопка выключения
-- 4 процедурно сгенерированных монохромных обоев 4K + скрипт переключения между ними
-- Полностью настроенный `hypridle`: приглушение экрана → блокировка → DPMS off → сон
-- `install.sh` / `update.sh` / `uninstall.sh` с резервным копированием
+A minimal lock screen for Hyprland: deep black, greys, white accents. Nothing is coloured — every state (idle input, Caps Lock, wrong password) is signalled through the brightness and opacity of white rather than through hue. A frosted-glass card holds the avatar and password field, the wallpapers are generated procedurally at 4K, and a small system monitor sits on the lock screen itself.
 
-## Требования
+> **Screenshot:** to be added — see [Contributing a screenshot](#contributing-a-screenshot).
 
-- Arch Linux (или производный дистрибутив с `pacman`)
+## What's in it
+
+- Large clock (`$TIME`) and a date in the system locale
+- Circular avatar, `$USER`@hostname
+- Keyboard layout indicator
+- Password field signalling Caps Lock / Num Lock / failure through brightness, not colour
+- Inline monitoring: CPU, RAM, temperature (where sensors exist), battery (on laptops), Wi-Fi
+- Clickable power button
+- Four procedurally generated monochrome 4K wallpapers plus a switcher script
+- A fully configured `hypridle` chain: dim → lock → DPMS off → suspend
+- `install.sh` / `update.sh` / `uninstall.sh`, all with backups
+
+## Requirements
+
+- Arch Linux (or a `pacman`-based derivative)
 - Hyprland
-- Обычный пользователь с `sudo`-правами (устанавливать нужно НЕ от root)
+- A regular user with `sudo` rights — do **not** run the installer as root
 
-Всё остальное (`hyprlock`, `hypridle`, шрифт, иконки, Python-библиотеки для
-генерации обоев) ставит `install.sh` сам.
+Everything else (`hyprlock`, `hypridle`, the font, icon rendering, the Python libraries used to generate wallpapers) is installed by `install.sh`.
 
-## Установка
+## Installation
 
 ```bash
-cd hyprlock-theme
+git clone https://github.com/Whyslab/hypr-lock-theme.git
+cd hypr-lock-theme
 chmod +x install.sh
 ./install.sh
 ```
 
-Скрипт спросит:
-1. Обновить ли систему перед установкой (`pacman -Syu`) — по желанию.
-2. Ставить ли `lm_sensors` для температуры CPU, если его ещё нет.
+The script asks two questions:
 
-Дальше всё происходит автоматически: пакеты, шрифт, резервная копия старых
-конфигов, генерация обоев, рендер иконок, сборка `hyprlock.conf` из шаблона,
-добавление `hypridle` в автозапуск, перезапуск `hypridle` для текущей сессии.
+1. Whether to update the system first (`pacman -Syu`) — optional.
+2. Whether to install `lm_sensors` for CPU temperature, if it isn't already present.
 
-В конце скрипт сам проверяет, что всё на месте (конфиги не пустые, обои
-сгенерированы, скрипты мониторинга не падают, бинарник `hyprlock` виден в
-`PATH`) и печатает отчёт.
+Everything after that is automatic: packages, font, a backup of your existing configs, wallpaper generation, icon rendering, building `hyprlock.conf` from the template, adding `hypridle` to autostart, and restarting `hypridle` for the current session.
 
-**Проверить результат:**
+At the end the script verifies its own work — configs are non-empty, wallpapers were generated, the monitoring scripts run without error, the `hyprlock` binary is on `PATH` — and prints a report.
+
+**Try it:**
+
 ```bash
 hyprlock
 ```
-Это заблокирует текущую сессию по-настоящему. Разблокируется твоим обычным
-паролем пользователя.
 
-## Структура проекта
+That genuinely locks the current session. Unlock with your normal user password.
+
+## Project layout
 
 ```
-hyprlock-theme/
-├── install.sh                    # установка "с нуля"
-├── uninstall.sh                  # полное удаление + опциональный откат к бэкапу
-├── update.sh                     # обновление уже установленной темы
-├── README.md                     # этот файл
+hypr-lock-theme/
+├── install.sh                    # clean install
+├── uninstall.sh                  # full removal + optional restore from backup
+├── update.sh                     # update an existing installation
 ├── hypr/
-│   ├── hyprlock.conf.template     # шаблон конфига hyprlock (плейсхолдеры __X__)
-│   ├── hypridle.conf              # готовый конфиг hypridle (копируется как есть)
-│   └── colors.conf                # палитра — единственное место, где менять цвета
+│   ├── hyprlock.conf.template    # hyprlock config template (__X__ placeholders)
+│   ├── hypridle.conf             # hypridle config, copied as-is
+│   └── colors.conf               # the palette — the only place to change colours
 ├── scripts/
-│   ├── generate_wallpapers.py     # процедурный генератор 4K-обоев (PIL/numpy/scipy)
-│   ├── switch-wallpaper.sh        # переключение между обоями
-│   ├── lock-status-cpu.sh         # % загрузки CPU
-│   ├── lock-status-ram.sh         # % и объём использованной RAM
-│   ├── lock-status-temp.sh        # температура CPU (lm_sensors → /sys/class/thermal → пусто)
-│   ├── lock-status-battery.sh     # заряд батареи (пусто, если батареи нет)
-│   └── lock-status-wifi.sh        # текущий SSID Wi-Fi
-├── wallpapers/                    # сюда генератор кладёт 4 варианта + current.png
+│   ├── generate_wallpapers.py    # procedural 4K wallpaper generator (PIL/numpy/scipy)
+│   ├── switch-wallpaper.sh       # switch between wallpapers
+│   ├── lock-status-cpu.sh        # CPU load %
+│   ├── lock-status-ram.sh        # RAM used, % and absolute
+│   ├── lock-status-temp.sh       # CPU temp (lm_sensors → /sys/class/thermal → empty)
+│   ├── lock-status-battery.sh    # battery charge (empty when there is no battery)
+│   └── lock-status-wifi.sh       # current Wi-Fi SSID
+├── wallpapers/                   # generator output: 4 variants + current.png
 ├── icons/
-│   ├── user.svg                   # аватар по умолчанию (если нет ~/.face)
-│   ├── power.svg                  # кнопка выключения
-│   └── lock.svg                   # декоративная иконка над полем пароля
-└── assets/                        # (пусто в репозитории — заполняется install.sh)
+│   ├── user.svg                  # default avatar, used when ~/.face is absent
+│   ├── power.svg                 # power button
+│   └── lock.svg                  # decorative icon above the password field
+└── assets/                       # empty in the repo — filled in by install.sh
 ```
 
-### Куда что копируется
+### Where things get installed
 
-| Из проекта | Устанавливается в |
+| From the project | Installed to |
 |---|---|
-| `hypr/hyprlock.conf.template` → (после подстановки путей) | `~/.config/hypr/hyprlock.conf` |
+| `hypr/hyprlock.conf.template` (after path substitution) | `~/.config/hypr/hyprlock.conf` |
 | `hypr/hypridle.conf` | `~/.config/hypr/hypridle.conf` |
 | `hypr/colors.conf` | `~/.config/hypr/colors.conf` |
 | `scripts/*.sh` | `~/.config/hypr/scripts/` |
-| обои из `generate_wallpapers.py` | `~/.config/hypr/wallpapers/` |
-| `icons/*.svg` → рендерятся в PNG | `~/.config/hypr/assets/` |
+| wallpapers from `generate_wallpapers.py` | `~/.config/hypr/wallpapers/` |
+| `icons/*.svg`, rendered to PNG | `~/.config/hypr/assets/` |
 
-`hyprlock.conf` ссылается на всё это уже по абсолютным путям внутри
-`~/.config/hypr/...` — сам каталог проекта после установки больше не нужен
-(но не мешает, если оставить).
+`hyprlock.conf` refers to all of these by absolute path inside `~/.config/hypr/…`, so the project directory is no longer needed after installation — though keeping it around does no harm.
 
-## Настройка
+## Configuration
 
-### Цвета
+### Colours
 
-Всё — в `~/.config/hypr/colors.conf`. Например, чтобы сделать акцент чуть
-тусклее:
+All of them live in `~/.config/hypr/colors.conf`. To make the accent slightly dimmer:
 
 ```
-$c_white = rgba(240, 240, 242, 1.0)   # поменяй здесь
+$c_white = rgba(240, 240, 242, 1.0)   # change it here
 ```
 
-Сохрани файл — `hyprlock` перечитывает конфиг при следующей блокировке,
-перезапускать ничего не нужно.
+Save the file — `hyprlock` re-reads its config on the next lock, so nothing needs restarting.
 
-### Обои
+### Wallpapers
 
 ```bash
-~/.config/hypr/scripts/switch-wallpaper.sh            # покажет список вариантов
-~/.config/hypr/scripts/switch-wallpaper.sh 3           # выбрать вариант №3
-~/.config/hypr/scripts/switch-wallpaper.sh --random    # случайный
-~/.config/hypr/scripts/switch-wallpaper.sh --next       # следующий по кругу
+~/.config/hypr/scripts/switch-wallpaper.sh            # list the variants
+~/.config/hypr/scripts/switch-wallpaper.sh 3          # pick variant 3
+~/.config/hypr/scripts/switch-wallpaper.sh --random   # random
+~/.config/hypr/scripts/switch-wallpaper.sh --next     # next in the cycle
 ```
 
-Хочешь добавить свои обои: просто положи `.png`/`.jpg` в
-`~/.config/hypr/wallpapers/` — они появятся в списке `switch-wallpaper.sh`
-автоматически (имя файла = что показывается в списке).
+To add your own, drop a `.png`/`.jpg` into `~/.config/hypr/wallpapers/` — it shows up in the switcher automatically, listed under its filename.
 
-Хочешь перегенерировать стандартные 4 варианта с другим разрешением:
+To regenerate the four defaults at a different resolution:
+
 ```bash
 python3 scripts/generate_wallpapers.py --width 2560 --height 1440
 ```
 
-### Шрифт
+### Font
 
-По умолчанию — `JetBrainsMono Nerd Font` (нужен для иконок CPU/RAM/батареи/Wi-Fi
-в виде глифов). Чтобы сменить на другой:
+The default is `JetBrainsMono Nerd Font`, needed for the CPU/RAM/battery/Wi-Fi glyphs. To change it:
 
-1. Установи шрифт (`pacman`/AUR/вручную).
-2. В `~/.config/hypr/colors.conf` поменяй:
+1. Install the font (`pacman`, the AUR, or manually).
+2. In `~/.config/hypr/colors.conf` set:
    ```
-   $font = Твой Шрифт Nerd Font
+   $font = Your Font Nerd Font
    ```
-   Если новый шрифт не Nerd Font — глифы CPU/RAM/батареи/Wi-Fi отобразятся
-   как пустые квадратики. Список Nerd Fonts: https://www.nerdfonts.com
 
-### Аватар
+If the replacement is not a Nerd Font, those glyphs render as empty boxes. Browse the options at <https://www.nerdfonts.com>.
 
-`install.sh` использует `~/.face`, если он есть, иначе рисует
-плейсхолдер-иконку. Чтобы поставить своё фото в любой момент:
+### Avatar
+
+`install.sh` uses `~/.face` when it exists, and draws a placeholder otherwise. To set your own photo at any point:
 
 ```bash
-cp мояфото.png ~/.config/hypr/assets/avatar.png
-```
-(квадратное изображение ляжет лучше всего — оно обрезается в круг).
-
-### Тайминги простоя/сна (hypridle)
-
-Всё в переменных наверху `~/.config/hypr/hypridle.conf`:
-
-```
-$dim_timeout     = 150   # приглушить подсветку
-$lock_timeout    = 300   # заблокировать экран
-$dpms_timeout    = 330   # выключить монитор
-$suspend_timeout = 1200  # уйти в сон
+cp myphoto.png ~/.config/hypr/assets/avatar.png
 ```
 
-Значения в секундах. Поменяй и просто сохрани — `hypridle` подхватит после
-перезапуска (`pkill hypridle && setsid hypridle &`, либо перелогинься).
+A square image works best — it gets cropped to a circle.
 
-### Кнопка выключения
+### Idle and suspend timings (hypridle)
 
-По умолчанию клик по иконке питания вызывает `systemctl poweroff`. Поменять
-действие или убрать вовсе — в `~/.config/hypr/hyprlock.conf`, блок `image`
-с `path`, указывающим на `power.png`: измени или удали строку `onclick`.
+All of it sits in the variables at the top of `~/.config/hypr/hypridle.conf`:
 
-### Раскладка клавиатуры
+```
+$dim_timeout     = 150   # dim the backlight
+$lock_timeout    = 300   # lock the screen
+$dpms_timeout    = 330   # turn the monitor off
+$suspend_timeout = 1200  # suspend
+```
 
-Индикатор `$LAYOUT[EN,RU]` в `hyprlock.conf` предполагает, что в твоём
-`hyprland.conf` раскладки заданы в порядке `kb_layout = us,ru` (или похожем,
-где английская первая). Проверь:
+Values are in seconds. Change and save — `hypridle` picks them up after a restart (`pkill hypridle && setsid hypridle &`, or just log back in).
+
+### Power button
+
+Clicking the power icon runs `systemctl poweroff` by default. To change or remove that, edit `~/.config/hypr/hyprlock.conf`: find the `image` block whose `path` points at `power.png` and change or delete its `onclick` line.
+
+### Keyboard layout
+
+The `$LAYOUT[EN,RU]` indicator in `hyprlock.conf` assumes your `hyprland.conf` lists layouts as `kb_layout = us,ru` — English first. Check with:
+
 ```bash
 grep kb_layout ~/.config/hypr/hyprland.conf
 ```
-Если порядок другой — поменяй порядок аргументов `$LAYOUT[...]` в
-`hyprlock.conf` под свой.
 
-## Обновление
+If your order differs, reorder the arguments in `$LAYOUT[…]` to match.
 
-Если скачал/стянул новую версию проекта:
+## Updating
+
+After pulling a newer version of the project:
 
 ```bash
-cd hyprlock-theme
+cd hypr-lock-theme
 ./update.sh
 ```
 
-`update.sh` не трогает системные пакеты — только обновляет файлы конфигурации.
-Если `colors.conf` или `hypridle.conf` отличаются от версии в проекте (то есть
-ты их редактировал), скрипт спросит перед перезаписью и в любом случае
-сохранит старую версию рядом с суффиксом `.bak-<дата>`. `avatar.png` update.sh
-никогда не трогает.
+`update.sh` does not touch system packages — it only refreshes configuration files. If `colors.conf` or `hypridle.conf` differ from the project's copies (meaning you edited them), it asks before overwriting and always keeps the old version alongside with a `.bak-<date>` suffix. It never touches `avatar.png`.
 
-## Удаление
+## Uninstalling
 
 ```bash
 ./uninstall.sh
 ```
 
-Спросит подтверждение, уберёт добавленную строку `exec-once = hypridle` из
-`hyprland.conf` (у себя же сделает бэкап перед этим) и предложит восстановить
-конфиги из резервной копии `install.sh`, если она нашлась в
-`~/.config/hypr/monochrome-vivid-backup-*`. Системные пакеты (`hyprlock`,
-`hypridle`, шрифт) uninstall.sh не трогает — они могут использоваться и без
-этой темы.
+It asks for confirmation, removes the `exec-once = hypridle` line it added to `hyprland.conf` (backing that file up first), and offers to restore your configs from the backup `install.sh` made, if one is found under `~/.config/hypr/monochrome-vivid-backup-*`. System packages (`hyprlock`, `hypridle`, the font) are left alone — they are useful outside this theme.
 
-## Восстановление резервной копии вручную
+## Restoring a backup by hand
 
-`install.sh` перед первой установкой, если находит существующие конфиги,
-сохраняет их в:
+Before its first install, if `install.sh` finds existing configs, it saves them to:
+
 ```
-~/.config/hypr/monochrome-vivid-backup-<дата_время>/
+~/.config/hypr/monochrome-vivid-backup-<date_time>/
 ```
-Восстановить руками:
+
+To restore manually:
+
 ```bash
 cp ~/.config/hypr/monochrome-vivid-backup-*/hyprlock.conf ~/.config/hypr/hyprlock.conf
 cp ~/.config/hypr/monochrome-vivid-backup-*/hypridle.conf ~/.config/hypr/hypridle.conf
 ```
-(и аналогично для `scripts/`, `wallpapers/`, `assets/`, если нужно).
 
-## Решение проблем
+Same idea for `scripts/`, `wallpapers/` and `assets/` if you need them.
 
-**После установки `hyprlock` ругается в логах на неизвестный ключ конфига
-(например `grace` или `onclick`)**
-Разные версии `hyprlock` поддерживают немного разный набор ключей — в
-частности, `onclick` появился относительно недавно. Открой
-`~/.config/hypr/hyprlock.conf`, найди строку с проблемным ключом и удали её —
-остальной конфиг продолжит работать, ты просто потеряешь конкретно эту
-фичу (например, кликабельность кнопки питания). Заодно неплохая идея:
+## Troubleshooting
+
+**`hyprlock` logs complain about an unknown config key (e.g. `grace` or `onclick`)**
+
+Different `hyprlock` versions support slightly different key sets — `onclick` in particular is fairly recent. Open `~/.config/hypr/hyprlock.conf`, find the offending line and delete it; the rest of the config keeps working and you only lose that one feature (a clickable power button, say). While you are there:
+
 ```bash
 sudo pacman -Syu hyprlock hypridle
 ```
 
-**Не видно температуры CPU**
-Либо не установлен `lm_sensors`, либо не запускался `sensors-detect`:
+**No CPU temperature**
+
+Either `lm_sensors` isn't installed, or `sensors-detect` was never run:
+
 ```bash
 sudo pacman -S lm_sensors
 sudo sensors-detect --auto
 ```
-Если и после этого пусто — на данном железе `lm_sensors` может не находить
-подходящий датчик, это ограничение самого железа/драйверов, не темы.
 
-**Не видно Wi-Fi / всегда "Offline"**
-Скрипт использует `nmcli` (NetworkManager), затем `iw`. Если у тебя другой
-сетевой менеджер (`iwd` напрямую, `systemd-networkd` и т.п.) — отредактируй
-`~/.config/hypr/scripts/lock-status-wifi.sh` под свою утилиту.
+If it is still blank, `lm_sensors` may simply not find a usable sensor on your hardware — that is a hardware/driver limitation, not a theme one.
 
-**Раскладка клавиатуры показывает не то / не показывает ничего**
-См. раздел "Раскладка клавиатуры" выше — проверь порядок `kb_layout` и
-порядок в `$LAYOUT[EN,RU]`.
+**No Wi-Fi shown, or always "Offline"**
 
-**Num Lock индикатор ведёт себя странно (залипает/не обновляется)**
-Определение состояния Num Lock исторически было немного нестабильным в
-некоторых версиях `hyprlock`. Если мешает — в `colors.conf` можно убрать
-эффект, приравняв `$c_num_ring` к `$c_idle_ring`, либо в `hyprlock.conf`
-поставить `numlock_color = -1`, чтобы полностью отключить реакцию на Num Lock.
+The script uses `nmcli` (NetworkManager), then falls back to `iw`. On a different network manager (`iwd` directly, `systemd-networkd`, …), edit `~/.config/hypr/scripts/lock-status-wifi.sh` to use your tool.
 
-**Аватар — просто серый круг**
-Значит не найден `~/.face`, и `install.sh` сгенерировал плейсхолдер. Смотри
-раздел "Аватар" выше.
+**Keyboard layout shows the wrong thing, or nothing**
 
-**Изменения в `hyprlock.conf` не применяются**
-Проверь конфиг напрямую перед тем как полагаться на автозапуск:
+See [Keyboard layout](#keyboard-layout) above — check the `kb_layout` order against the order in `$LAYOUT[…]`.
+
+**Num Lock indicator behaves oddly (sticks, or never updates)**
+
+Num Lock state detection has historically been a little unreliable in some `hyprlock` versions. If it bothers you, set `$c_num_ring` equal to `$c_idle_ring` in `colors.conf` to neutralise the effect, or set `numlock_color = -1` in `hyprlock.conf` to disable the Num Lock reaction entirely.
+
+**The avatar is just a grey circle**
+
+`~/.face` was not found and `install.sh` generated a placeholder. See [Avatar](#avatar) above.
+
+**Changes to `hyprlock.conf` are not applying**
+
+Test the config directly before trusting autostart:
+
 ```bash
 hyprlock --config ~/.config/hypr/hyprlock.conf
 ```
-Если внутри есть синтаксическая ошибка, `hyprlock` обычно предупреждает в
-логах (`journalctl --user -b | grep -i hyprlock` или вывод в терминал, если
-запущен вручную), но продолжает работать с тем, что смог распарсить.
 
-**Экран не блокируется автоматически по таймауту**
-Проверь, что `hypridle` реально запущен:
+On a syntax error `hyprlock` usually warns in the logs (`journalctl --user -b | grep -i hyprlock`, or straight to the terminal when run by hand) but carries on with whatever it managed to parse.
+
+**The screen never locks on its own**
+
+Check that `hypridle` is actually running:
+
 ```bash
-pidof hypridle || echo "не запущен"
+pidof hypridle || echo "not running"
 ```
-Если не запущен — проверь, что в `~/.config/hypr/hyprland.conf` есть строка
-`exec-once = hypridle` (её должен был добавить `install.sh`), и перелогинься.
 
-## Лицензия обоев и иконок
+If it isn't, confirm `~/.config/hypr/hyprland.conf` contains `exec-once = hypridle` (installed by `install.sh`) and log back in.
 
-Обои генерируются локально скриптом `generate_wallpapers.py` — это оригинальный
-процедурный контент, никаких скачиваний из интернета и никаких вопросов с
-лицензией. Иконки в `icons/` — авторские SVG, нарисованные для этого проекта.
+## Contributing a screenshot
+
+`hyprlock` takes over the whole display, so a screenshot has to be taken from a locked session by hand — for example with `grim` from a second TTY, or by photographing the screen. If you run this theme, a screenshot is the most useful thing you can contribute.
+
+## Licence for wallpapers and icons
+
+The wallpapers are generated locally by `generate_wallpapers.py` — original procedural content, nothing downloaded, no licensing questions. The icons in `icons/` are original SVGs drawn for this project.
+
+## Licence
+
+MIT — see [LICENSE](LICENSE).
