@@ -132,7 +132,8 @@ GENERATORS = {
 
 def main():
     parser = argparse.ArgumentParser(description="Генератор Monochrome Vivid обоев")
-    parser.add_argument("--out", default=os.path.join(os.path.dirname(__file__), "..", "wallpapers"))
+    default_out = os.path.join(os.path.dirname(__file__), "..", "wallpapers")
+    parser.add_argument("--out", default=default_out)
     parser.add_argument("--width", type=int, default=3840)
     parser.add_argument("--height", type=int, default=2160)
     args = parser.parse_args()

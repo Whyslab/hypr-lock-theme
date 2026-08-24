@@ -6,6 +6,7 @@
 ![Hyprland](https://img.shields.io/badge/Hyprland-58e1ff?style=flat-square&logo=hyprland&logoColor=black)
 ![Shell](https://img.shields.io/badge/Shell-4eaa25?style=flat-square&logo=gnubash&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
+[![CI](https://github.com/Whyslab/hypr-lock-theme/actions/workflows/ci.yml/badge.svg)](https://github.com/Whyslab/hypr-lock-theme/actions/workflows/ci.yml)
 
 A minimal lock screen for Hyprland: deep black, greys, white accents. Nothing is coloured — every state (idle input, Caps Lock, wrong password) is signalled through the brightness and opacity of white rather than through hue. A frosted-glass card holds the avatar and password field, the wallpapers are generated procedurally at 4K, and a small system monitor sits on the lock screen itself.
 
@@ -267,6 +268,16 @@ pidof hypridle || echo "not running"
 ```
 
 If it isn't, confirm `~/.config/hypr/hyprland.conf` contains `exec-once = hypridle` (installed by `install.sh`) and log back in.
+
+## Continuous integration
+
+Three checks run on every push:
+
+* **Shell** — `bash -n` on every script, then ShellCheck at `style` severity (the strictest level, and currently clean).
+* **Python** — `ruff` over the wallpaper generator.
+* **Template placeholders** — `hyprlock.conf.template` carries `__PLACEHOLDER__` tokens that `install.sh` and `update.sh` each substitute from their own list. Add a token to the template and forget it in one of the scripts and you get a config containing a literal `__SCRIPT_WIFI__` path: hyprlock starts, and that one widget silently does nothing. The check asserts both scripts cover exactly the token set the template uses.
+
+---
 
 ## Contributing a screenshot
 

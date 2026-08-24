@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  shell:
+    name: Shell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax check
+        run: |
+          find . -name '*.sh' -print0 | xargs -0 -n1 bash -n
+
+      - name: ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          severity: style
+
+  python:
+    name: Wallpaper generator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install lint tooling
+        run: pip install ruff
+
+      - name: Lint
+        run: ruff check scripts/
+
+  template:
+    name: Template placeholders
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # install.sh and update.sh each substitute a fixed list of __PLACEHOLDER__
+      # tokens into hyprlock.conf.template. Adding a token to the template and
+      # forgetting it in one of the scripts produces a config with a literal
+      # __SCRIPT_FOO__ path in it — hyprlock starts, that one widget silently
+      # does nothing. This catches that before anyone installs it.
+      - name: Every template placeholder is substituted by both scripts
+        run: |
+          set -euo pipefail
+          template_tokens=$(grep -o '__[A-Z_]*__' hypr/hyprlock.conf.template | sort -u)
+          status=0
+
+          for script in install.sh update.sh; do
+            script_tokens=$(grep -o '__[A-Z_]*__' "$script" | sort -u)
+            missing=$(comm -23 <(echo "$template_tokens") <(echo "$script_tokens"))
+            if [ -n "$missing" ]; then
+              echo "::error file=$script::does not substitute: $(echo $missing)"
+              status=1
+            fi
+            unused=$(comm -13 <(echo "$template_tokens") <(echo "$script_tokens"))
+            if [ -n "$unused" ]; then
+              echo "::error file=$script::substitutes tokens absent from the template: $(echo $unused)"
+              status=1
+            fi
+          done
+
+          [ "$status" -eq 0 ] && echo "All placeholders accounted for in both scripts."
+          exit "$status"
