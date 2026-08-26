@@ -76,19 +76,18 @@ fi
 # ---------------------------------------------------------------------------
 log_step "Проверка и установка зависимостей"
 
+# Только то, без чего тема не работает. grim/slurp/jq раньше стояли здесь,
+# но нигде не использовались: grim нужен лишь тому, кто хочет прислать
+# скриншот (см. README), а slurp и jq не упоминались в проекте вообще.
 CORE_PKGS=(
-    hyprlock
-    hypridle
-    grim
-    slurp
-    playerctl
-    brightnessctl
-    pam
-    librsvg
-    jq
-    python-pillow
-    python-numpy
-    python-scipy
+    hyprlock          # сам экран блокировки
+    hypridle          # демон простоя, который его вызывает
+    brightnessctl     # приглушение подсветки в hypridle.conf
+    pam               # аутентификация по системному паролю
+    librsvg           # rsvg-convert: SVG-иконки → PNG при установке
+    python-pillow     # генератор обоев
+    python-numpy      # генератор обоев
+    python-scipy      # генератор обоев (contour-вариант)
 )
 
 log_info "Пакеты: ${CORE_PKGS[*]}"

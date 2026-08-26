@@ -1,30 +1,45 @@
 #!/usr/bin/env bash
 # lock-status-temp.sh
-# Печатает температуру CPU, если её можно получить. Используется в hyprlock.conf
+# Печатает температуру CPU. Используется в hyprlock.conf
 # как text = cmd[update:5000] /путь/lock-status-temp.sh
-# Пытается lm_sensors, затем /sys/class/thermal, иначе тихо ничего не печатает
-# (label в hyprlock просто останется пустым, что уместно для машин без датчиков).
+#
+# Без set -e: скрипт последовательно пробует несколько источников,
+# и неудача раннего зонда не должна прерывать выполнение.
 set -uo pipefail
 
-# 1. lm_sensors (samый точный источник, если установлен пакет lm_sensors и sensors-detect был запущен)
+# LC_ALL=C обязателен: скрипт разбирает числовой вывод сторонних утилит.
+# В локали вроде ru_RU.UTF-8 они печатают дробное число через запятую,
+# а bash printf %f в той же локали отказывается читать точку — из-за этой
+# пары несовместимостей значения молча ломались.
+export LC_ALL=C
+
+# 1. lm_sensors: сначала общий датчик пакета, затем нулевое ядро.
 if command -v sensors >/dev/null 2>&1; then
-    t=$(sensors 2>/dev/null | grep -m1 -Eo '\+[0-9]+\.[0-9]+°C' | head -n1 | tr -d '+')
-    if [[ -n "$t" ]]; then
-        printf '󰔏 %s\n' "$t"
+    out=$(sensors 2>/dev/null || true)
+
+    temp=$(printf '%s\n' "$out" | awk '/Package id 0:/ {gsub(/[+°C]/, "", $4); print $4; exit}')
+    [[ -z "$temp" ]] && temp=$(printf '%s\n' "$out" | awk '/^Core 0:/ {gsub(/[+°C]/, "", $3); print $3; exit}')
+
+    if [[ -n "$temp" ]]; then
+        printf '󰔏 %d°C\n' "$(awk -v v="$temp" 'BEGIN { printf "%d", int(v + 0.5) }')"
         exit 0
     fi
 fi
 
-# 2. /sys/class/thermal (почти всегда доступно, но зона 0 не всегда это CPU package)
-if [[ -d /sys/class/thermal ]]; then
-    for zone in /sys/class/thermal/thermal_zone*/temp; do
-        [[ -f "$zone" ]] || continue
-        raw=$(cat "$zone" 2>/dev/null || echo "")
-        [[ "$raw" =~ ^[0-9]+$ ]] || continue
-        printf '󰔏 %s°C\n' "$(( raw / 1000 ))"
+# 2. Фолбэк для машин без lm_sensors: зона с типом x86_pkg_temp, иначе первая.
+for zone in /sys/class/thermal/thermal_zone*; do
+    [[ -r "$zone/temp" ]] || continue
+    type=$(cat "$zone/type" 2>/dev/null || echo "")
+    if [[ "$type" == "x86_pkg_temp" || "$type" == "cpu-thermal" ]]; then
+        printf '󰔏 %d°C\n' "$(( $(cat "$zone/temp") / 1000 ))"
         exit 0
-    done
-fi
+    fi
+done
 
-# 3. Ничего не нашли — просто пусто, без ошибок и мусора на экране
-echo ""
+for zone in /sys/class/thermal/thermal_zone*; do
+    [[ -r "$zone/temp" ]] || continue
+    printf '󰔏 %d°C\n' "$(( $(cat "$zone/temp") / 1000 ))"
+    exit 0
+done
+
+echo "󰔏 —"

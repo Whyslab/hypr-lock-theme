@@ -60,10 +60,18 @@ fi
 # 2. hypridle.conf
 # ---------------------------------------------------------------------------
 log_step "hypridle.conf"
+# Тайминги простоя — вопрос личного вкуса: кто-то блокирует экран через 5 минут,
+# кто-то через час. Поэтому спрашиваем, а не переписываем молча.
 if ! diff -q "${PROJECT_DIR}/hypr/hypridle.conf" "${CONFIG_DIR}/hypridle.conf" >/dev/null 2>&1; then
-    cp -f "${CONFIG_DIR}/hypridle.conf" "${CONFIG_DIR}/hypridle.conf.bak-$(date +%Y%m%d_%H%M%S)"
-    cp -f "${PROJECT_DIR}/hypr/hypridle.conf" "${CONFIG_DIR}/hypridle.conf"
-    log_info "hypridle.conf обновлён (старый сохранён рядом с .bak-*)."
+    log_warn "Твой hypridle.conf отличается от версии в проекте (похоже, ты правил тайминги)."
+    read -r -p "Перезаписать его версией по умолчанию из проекта? (y/N): " overwrite_idle
+    if [[ "${overwrite_idle,,}" == "y" ]]; then
+        cp -f "${CONFIG_DIR}/hypridle.conf" "${CONFIG_DIR}/hypridle.conf.bak-$(date +%Y%m%d_%H%M%S)"
+        cp -f "${PROJECT_DIR}/hypr/hypridle.conf" "${CONFIG_DIR}/hypridle.conf"
+        log_info "hypridle.conf обновлён (старый сохранён рядом с .bak-*)."
+    else
+        log_info "Оставляю твои тайминги как есть."
+    fi
 else
     log_info "hypridle.conf не менялся, обновление не требуется."
 fi
@@ -72,10 +80,45 @@ fi
 # 3. Скрипты мониторинга
 # ---------------------------------------------------------------------------
 log_step "Скрипты"
-cp -f "${PROJECT_DIR}"/scripts/lock-status-*.sh "$SCRIPTS_DIR/"
-cp -f "${PROJECT_DIR}/scripts/switch-wallpaper.sh" "$SCRIPTS_DIR/"
-chmod +x "${SCRIPTS_DIR}"/*.sh
-log_info "Скрипты обновлены до последней версии из проекта."
+# Раньше здесь стоял безусловный `cp -f`: любые твои правки в скриптах
+# мониторинга затирались молча и без резервной копии. Теперь каждый скрипт
+# сверяется с версией из проекта, и переписывается только с твоего согласия —
+# со снимком старой версии рядом.
+SCRIPTS_TS="$(date +%Y%m%d_%H%M%S)"
+scripts_changed=0
+scripts_kept=0
+
+for src in "${PROJECT_DIR}"/scripts/lock-status-*.sh "${PROJECT_DIR}/scripts/switch-wallpaper.sh"; do
+    [[ -f "$src" ]] || continue
+    name="$(basename "$src")"
+    dst="${SCRIPTS_DIR}/${name}"
+
+    if [[ ! -e "$dst" ]]; then
+        cp -f "$src" "$dst"
+        chmod +x "$dst"
+        log_info "${name}: новый скрипт, установлен."
+        continue
+    fi
+
+    if diff -q "$src" "$dst" >/dev/null 2>&1; then
+        continue
+    fi
+
+    log_warn "${name} отличается от версии в проекте (похоже, ты его менял)."
+    read -r -p "  Перезаписать ${name} версией из проекта? (y/N): " ov
+    if [[ "${ov,,}" == "y" ]]; then
+        cp -f "$dst" "${dst}.bak-${SCRIPTS_TS}"
+        cp -f "$src" "$dst"
+        chmod +x "$dst"
+        log_info "  ${name} обновлён (старая версия — ${name}.bak-${SCRIPTS_TS})."
+        scripts_changed=$((scripts_changed + 1))
+    else
+        log_info "  Оставляю твой ${name} как есть."
+        scripts_kept=$((scripts_kept + 1))
+    fi
+done
+
+log_info "Скрипты: обновлено ${scripts_changed}, оставлено без изменений ${scripts_kept}."
 
 # ---------------------------------------------------------------------------
 # 4. Обои — регенерируем именованные варианты (не трогает твои личные, если

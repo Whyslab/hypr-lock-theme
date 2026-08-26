@@ -3,6 +3,7 @@
 # резервная копия от install.sh, предлагает восстановить старые конфиги.
 
 set -Eeuo pipefail
+trap 'log_err "Прервано на строке $LINENO. Ничего больше не удаляется."; exit 1' ERR
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -51,6 +52,43 @@ fi
 # 2. Удаление файлов темы
 # ---------------------------------------------------------------------------
 log_step "Удаление файлов темы"
+
+# Снимок текущего состояния ПЕРЕД удалением. Раньше uninstall.sh полагался
+# только на резервную копию, оставленную install.sh: если ты правил конфиги
+# или скрипты уже после установки, эти правки исчезали безвозвратно.
+SNAPSHOT="${CONFIG_DIR}/monochrome-vivid-removed-$(date +%Y%m%d_%H%M%S)"
+mkdir -p "${SNAPSHOT}/scripts" "${SNAPSHOT}/assets" "${SNAPSHOT}/wallpapers"
+
+snapshot_file() {
+    local src="$1" sub="${2:-}"
+    [[ -e "$src" ]] || return 0
+    cp -a "$src" "${SNAPSHOT}/${sub}" 2>/dev/null || true
+}
+
+for f in hyprlock.conf hypridle.conf colors.conf; do
+    snapshot_file "${CONFIG_DIR}/${f}"
+done
+for s_name in cpu ram temp battery wifi; do
+    snapshot_file "${CONFIG_DIR}/scripts/lock-status-${s_name}.sh" "scripts/"
+done
+snapshot_file "${CONFIG_DIR}/scripts/switch-wallpaper.sh" "scripts/"
+for f in avatar.png power.png lock.png; do
+    snapshot_file "${CONFIG_DIR}/assets/${f}" "assets/"
+done
+for f in monochrome-01-mesh.png monochrome-02-grain.png monochrome-03-contour.png \
+         monochrome-04-glow.png current.png; do
+    snapshot_file "${CONFIG_DIR}/wallpapers/${f}" "wallpapers/"
+done
+
+# Пустые подкаталоги только мешают — уберём их из снимка.
+find "$SNAPSHOT" -type d -empty -delete 2>/dev/null || true
+
+if [[ -d "$SNAPSHOT" ]]; then
+    log_info "Снимок текущих файлов сохранён: ${SNAPSHOT}"
+    log_info "Если удаление окажется ошибкой — всё лежит там."
+else
+    log_info "Нечего сохранять: файлов темы на месте не найдено."
+fi
 
 rm -f "${CONFIG_DIR}/hyprlock.conf"
 rm -f "${CONFIG_DIR}/hypridle.conf"
@@ -113,5 +151,8 @@ fi
 
 echo ""
 log_info "Удаление завершено."
+if [[ -d "${SNAPSHOT:-}" ]]; then
+    log_info "Снимок удалённых файлов: ${SNAPSHOT}"
+fi
 log_warn "Пакеты (hyprlock, hypridle, шрифт и т.д.) НЕ удалены — они могут использоваться"
 log_warn "другими темами. Убрать вручную: sudo pacman -Rns hyprlock hypridle ttf-jetbrains-mono-nerd"

@@ -30,7 +30,9 @@ A minimal lock screen for Hyprland: deep black, greys, white accents. Nothing is
 - Hyprland
 - A regular user with `sudo` rights — do **not** run the installer as root
 
-Everything else (`hyprlock`, `hypridle`, the font, icon rendering, the Python libraries used to generate wallpapers) is installed by `install.sh`.
+Everything else is installed by `install.sh`: `hyprlock`, `hypridle`, `brightnessctl`, `librsvg` (to render the SVG icons), the three Python libraries the wallpaper generator needs, and the JetBrainsMono Nerd Font the glyphs come from.
+
+It installs only what the theme actually uses. `grim` is *not* installed — it is only useful if you want to contribute a screenshot, and that is your call, not the installer's.
 
 ## Installation
 
@@ -185,7 +187,11 @@ cd hypr-lock-theme
 ./update.sh
 ```
 
-`update.sh` does not touch system packages — it only refreshes configuration files. If `colors.conf` or `hypridle.conf` differ from the project's copies (meaning you edited them), it asks before overwriting and always keeps the old version alongside with a `.bak-<date>` suffix. It never touches `avatar.png`.
+`update.sh` does not touch system packages — it only refreshes configuration files, and it never overwrites something you edited without asking first.
+
+For `colors.conf`, `hypridle.conf` and every script under `scripts/`, it compares your installed copy against the project's. If they match, it moves on. If they differ — meaning you changed something — it says so, asks whether to overwrite, and only if you agree does it write, keeping your version alongside as `<name>.bak-<timestamp>`. It never touches `avatar.png`.
+
+> Earlier versions copied the monitoring scripts over unconditionally, with no backup and no prompt. If you had tuned them for your own hardware, an update silently threw that away. That is fixed — but it is why the first thing this project's own history does is back things up.
 
 ## Uninstalling
 
@@ -193,7 +199,9 @@ cd hypr-lock-theme
 ./uninstall.sh
 ```
 
-It asks for confirmation, removes the `exec-once = hypridle` line it added to `hyprland.conf` (backing that file up first), and offers to restore your configs from the backup `install.sh` made, if one is found under `~/.config/hypr/monochrome-vivid-backup-*`. System packages (`hyprlock`, `hypridle`, the font) are left alone — they are useful outside this theme.
+It asks for confirmation, then — before deleting anything — copies every file it is about to remove into `~/.config/hypr/monochrome-vivid-removed-<timestamp>/`. That snapshot is taken from the current state, so any customisation you made after installing survives even if the original `install.sh` backup is long gone.
+
+It then removes the theme's files, strips the `exec-once = hypridle` line it added to `hyprland.conf` (backing that file up first), and offers to restore your pre-theme configs from `~/.config/hypr/monochrome-vivid-backup-*` if one is found. System packages (`hyprlock`, `hypridle`, the font) are left alone — they are useful outside this theme.
 
 ## Restoring a backup by hand
 
@@ -271,11 +279,14 @@ If it isn't, confirm `~/.config/hypr/hyprland.conf` contains `exec-once = hyprid
 
 ## Continuous integration
 
-Three checks run on every push:
+Four checks run on every push:
 
 * **Shell** — `bash -n` on every script, then ShellCheck at `style` severity (the strictest level, and currently clean).
 * **Python** — `ruff` over the wallpaper generator.
+* **Test suite** — `tests/run-tests.sh`, 35 assertions: every monitoring script is executed and checked for a single well-formed line of output, the wallpaper generator is run and its output verified to be strictly grayscale, the declared package list is checked against actual usage, and the whole set is re-run under `ru_RU.UTF-8` as a regression guard (see below).
 * **Template placeholders** — `hyprlock.conf.template` carries `__PLACEHOLDER__` tokens that `install.sh` and `update.sh` each substitute from their own list. Add a token to the template and forget it in one of the scripts and you get a config containing a literal `__SCRIPT_WIFI__` path: hyprlock starts, and that one widget silently does nothing. The check asserts both scripts cover exactly the token set the template uses.
+
+The locale test exists because of a real bug. The monitoring scripts parse numbers out of `sensors`, `upower` and `free` — and in a locale like `ru_RU.UTF-8` those tools print `98,6419%` with a comma, while bash's `printf %f` in that same locale refuses to read a dot. The scripts converted comma to dot, `printf` then rejected it, and its `|| echo 0` fallback concatenated onto the partial output: the battery widget displayed `980%`. Every script now pins `LC_ALL=C` before parsing, and the suite runs them under a comma locale to keep it that way.
 
 ---
 

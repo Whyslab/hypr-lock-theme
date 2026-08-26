@@ -1,1 +1,16 @@
+# Сгенерированные обои — создаются install.sh/update.sh на месте
 wallpapers/*.png
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Резервные копии, которые оставляют install.sh / update.sh / uninstall.sh
+*.bak-*
+*.before-uninstall-*
+monochrome-vivid-backup-*/
+monochrome-vivid-removed-*/
+
+# Прочее
+*.log
+.ruff_cache/

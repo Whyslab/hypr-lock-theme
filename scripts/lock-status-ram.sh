@@ -1,15 +1,25 @@
 #!/usr/bin/env bash
 # lock-status-ram.sh
-# Печатает текущее использование RAM. Используется в hyprlock.conf
+# Печатает занятую оперативную память. Используется в hyprlock.conf
 # как text = cmd[update:3000] /путь/lock-status-ram.sh
+#
+# Считаем от MemAvailable, а не от голого "used": MemAvailable учитывает
+# вытесняемый кэш, поэтому цифра отражает реальную нехватку памяти,
+# а не забитый страничный кэш, который система отдаст по первому требованию.
 set -euo pipefail
 
-read -r total used <<< "$(free -m | awk '/^Mem:/ {print $2, $3}')"
+# LC_ALL=C обязателен: скрипт разбирает числовой вывод сторонних утилит.
+# В локали вроде ru_RU.UTF-8 они печатают дробное число через запятую,
+# а bash printf %f в той же локали отказывается читать точку — из-за этой
+# пары несовместимостей значения молча ломались.
+export LC_ALL=C
 
-if [[ -z "${total:-}" || "$total" -le 0 ]]; then
-    echo "󰍛 N/A"
-    exit 0
-fi
-
-pct=$(( 100 * used / total ))
-printf '󰍛 %s%% (%sG/%sG)\n' "$pct" "$(awk -v u="$used" 'BEGIN{printf "%.1f", u/1024}')" "$(awk -v t="$total" 'BEGIN{printf "%.1f", t/1024}')"
+free -m | awk '
+/^Mem:/ {
+    total = $2
+    avail = $7
+    if (total <= 0) { print "󰍛 —"; exit }
+    used = total - avail
+    printf "󰍛 %.1f/%.1f GiB (%d%%)\n", used/1024, total/1024, int(used * 100 / total)
+    exit
+}'

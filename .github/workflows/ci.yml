@@ -70,3 +70,27 @@ jobs:
 
           [ "$status" -eq 0 ] && echo "All placeholders accounted for in both scripts."
           exit "$status"
+
+  tests:
+    name: Test suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the runtime the tests need
+        run: |
+          sudo apt-get update -qq
+          # ru_RU.UTF-8 нужен для регрессионного теста на локаль с запятой
+          # в качестве десятичного разделителя.
+          sudo apt-get install -y -qq locales network-manager upower lm-sensors
+          sudo locale-gen ru_RU.UTF-8
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install wallpaper generator dependencies
+        run: pip install pillow numpy scipy
+
+      - name: Run the test suite
+        run: bash tests/run-tests.sh
